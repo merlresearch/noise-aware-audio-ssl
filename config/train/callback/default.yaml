@@ -1,0 +1,19 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+tqdm_refresh_rate: 1
+callbacks:
+  best:
+    monitor: "valid/main/epoch"
+    filename: "epoch={epoch}-loss={valid/main/epoch:.9f}"
+    save_top_k: 1
+    mode: "min"
+    auto_insert_metric_name: false
+  interval:
+    monitor: "valid/main/epoch"
+    filename: "interval_epoch={epoch}-loss={valid/main/epoch:.9f}"
+    save_top_k: -1
+    every_n_epochs: 20
+    save_last: true
+    auto_insert_metric_name: false

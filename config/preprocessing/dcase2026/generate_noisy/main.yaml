@@ -1,0 +1,55 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - _self_
+  - experiment: null
+
+seed: 0
+name: null
+split: valid
+
+batch_size: 40
+num_workers: 0
+pin_memory: true
+fs: 16000
+local_cache_root: null
+
+output_dir: scratch/dcase2026/noisy
+clean_parent_dir_list: null
+
+dataset:
+  _target_: null
+  target_path_selector_list: null
+  noise_path_selector_dict: null
+  sec_s: null
+  validator_cfg:
+    _target_: nassl.dataset.validator.NoisePowerValidator
+  sample_rate: ${fs}
+  return_path: true
+  shuffle: false
+  local_cache_root: ${local_cache_root}
+
+collator:
+  _target_: nassl.dataset.collator.PairGeneratorCollator
+  pair_generator_cfg:
+    _target_: null
+    snr_range: null
+    rir_dir: null
+    snr_beta_alpha: 1.0
+    snr_beta_beta: 1.0
+    fs: ${fs}
+    conv_method: "fft"
+    local_cache_root: ${local_cache_root}
+    replace_zero_target: false
+    use_early_reflection_target: false
+    early_reflection_duration_sec: 0.05
+    return_manifest: true
+  shuffle: true
+
+hydra:
+  run:
+    dir: "${output_dir}/${name}/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}"
+  job:
+    chdir: false

@@ -1,0 +1,27 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+_target_: nassl.plmodel.NoiseAwarePLModel
+model_cfg:
+  _target_: nassl.model.NAEAT
+  model_id: "worstchan/EAT-base_epoch30_pretrain"
+  trainable_base: false
+  eval_base: true
+  fusion_layer_cfg:
+    _target_: nassl.module.fusion.PreNormCrossAttnBlock
+    attention_cfg:
+      num_heads: 8
+      dropout: 0.1
+    hidden_dim_multiplier: 3
+    init_identity: true
+loss_cfg:
+  _target_: nassl.loss.EATMSELoss
+  weight_utterance_loss: 1.0
+optim_cfg:
+  _target_: torch.optim.AdamW
+  lr: 1.0e-4
+lrscheduler_cfg: null
+teacher_model_cfg:
+  _target_: nassl.feature_extraction_model.FE_EAT
+  model_id: ${plmodel.model_cfg.model_id}

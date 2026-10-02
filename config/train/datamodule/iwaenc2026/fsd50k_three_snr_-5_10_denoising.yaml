@@ -1,0 +1,56 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+batch_size: 40
+num_workers: 0
+sample_rate: 16000
+manifest_name: "manifest_test"
+local_cache_root: null
+min_snr: -5
+max_snr: 10
+
+train:
+  dataloader:
+    batch_size: ${datamodule.batch_size}
+    num_workers: ${datamodule.num_workers}
+    pin_memory: true
+    shuffle: true
+  dataset:
+    _target_: nassl.dataset.DenoisingDataset
+    target_path_selector_list: ["scratch/dataset/processed/fsd50k/path/train.json"]
+    noise_path_selector_dict:
+      demand: ["scratch/dataset/processed/demand/path/train.json"]
+      qut: ["scratch/dataset/processed/qut_noise/path/train.json"]
+      wham: ["scratch/dataset/processed/wham/path/train.json"]
+    sec_s: 10.0
+    validator_cfg:
+      _target_: nassl.dataset.validator.NoisePowerValidator
+    sample_rate: ${datamodule.sample_rate}
+    shuffle: true
+    local_cache_root: ${datamodule.local_cache_root}
+  batch_sampler: null
+  collator:
+    _target_: nassl.dataset.RandomSNRMixCollator
+    snr_range:
+      - ${datamodule.min_snr}
+      - ${datamodule.max_snr}
+    shuffle: true
+valid:
+  dataloader:
+    batch_size: ${datamodule.batch_size}
+    num_workers: ${datamodule.num_workers}
+    pin_memory: true
+    shuffle: false
+  dataset:
+    _target_: nassl.dataset.DenoisingTestDataset
+    manifest_json_path: "scratch/iwaenc2026/noisy/fsd50k/wham_snr_-5_10/valid_noise/${datamodule.manifest_name}.json"
+    sample_rate: ${datamodule.sample_rate}
+    return_wave_s: false
+    return_rep_s: true
+    feature_dir: "scratch/iwaenc2026/feature/fsd50k_wham_snr_-5_10/valid/s_beats_iter3/data"
+    local_cache_root: ${datamodule.local_cache_root}
+  batch_sampler: null
+  collator:
+    _target_: nassl.dataset.TensorCollator
+    shuffle: false

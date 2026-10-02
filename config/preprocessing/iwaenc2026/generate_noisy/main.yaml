@@ -1,0 +1,26 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - _self_
+  - experiment: null
+
+split: null
+output_dir: null
+seed: 0
+sample_rate: 16000
+sec_s: null
+sec_n_ref: "same_as_s"
+min_snr: null
+max_snr: null
+snr_range:
+  - ${min_snr}
+  - ${max_snr}
+create_shift_left_slen: true
+
+hydra:
+  run:
+    dir: "${output_dir}/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}"
+  job:
+    chdir: false

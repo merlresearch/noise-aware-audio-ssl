@@ -1,0 +1,22 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - _self_
+  - datamodule: null
+  - plmodel: null
+  - trainer: null
+  - callback: default
+  - experiment: null
+
+
+seed: 0
+name: null
+result_dir: "scratch/result"
+
+
+
+hydra:
+  run:
+    dir: ${result_dir}/${name}/${seed}/model

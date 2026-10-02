@@ -1,0 +1,18 @@
+# @package _global_
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - override /callback: ema
+  - override /datamodule: dcase2026/fsd50k_three_snr_-10_10_4noise_random_rir
+  - override /plmodel: dcase2026/naeat
+  - override /trainer: ddp
+
+datamodule:
+  feature_name: "s_eat"
+
+
+trainer:
+  check_val_every_n_epoch: 10
+  devices: 4

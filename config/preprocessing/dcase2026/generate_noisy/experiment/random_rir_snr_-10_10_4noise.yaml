@@ -1,0 +1,31 @@
+# @package _global_
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+split: valid
+rir_dir_version: random_rir
+name: null
+
+clean_parent_dir_list:
+  - "scratch/dataset/processed/fsd50k/audio"
+
+dataset:
+  _target_: nassl.dataset.torch_dataset_multi_noise.TargetMultiNoisePairDataset
+  target_path_selector_list:
+    - "scratch/dataset/processed/fsd50k/path/${split}.json"
+  noise_path_selector_dict:
+    wham: ["scratch/dataset/processed/wham/path/${split}.json"]
+  sec_s: 10.0
+  num_noises: 4
+
+collator:
+  pair_generator_cfg:
+    _target_: nassl.dataset.pair_generator.MultiNoiseTwoChannelPairGenerator
+    snr_range: [-10, 10]
+    rir_dir: "scratch/dcase2026/irs/${rir_dir_version}/${split}"
+    snr_beta_alpha: 1.0
+    snr_beta_beta: 1.0
+    use_early_reflection_target: true
+    early_reflection_duration_sec: 0.05
+    num_src: 4

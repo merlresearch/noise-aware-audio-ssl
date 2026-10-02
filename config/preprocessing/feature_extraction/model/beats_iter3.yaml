@@ -1,0 +1,8 @@
+# @package _global_
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+feature_extractor_cfg:
+  _target_: nassl.feature_extraction_model.FE_BEATs
+  model_id: "BEATs_iter3"

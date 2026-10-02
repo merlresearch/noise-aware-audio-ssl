@@ -1,0 +1,73 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+batch_size: 40
+num_workers: 0
+sample_rate: 16000
+local_cache_root: null
+rir_dir_version: random_rir
+min_snr: -10
+max_snr: 10
+valid_set_name: ${datamodule.rir_dir_version}_snr_${datamodule.min_snr}_${datamodule.max_snr}_4noise
+feature_name: s_beats_iter3
+
+train:
+  dataloader:
+    batch_size: ${datamodule.batch_size}
+    num_workers: ${datamodule.num_workers}
+    pin_memory: true
+    shuffle: true
+    set_num_threads_to_one: true
+  dataset:
+    _target_: nassl.dataset.torch_dataset_multi_noise.TargetMultiNoisePairDataset
+    target_path_selector_list: ["scratch/dataset/processed/fsd50k/path/train.json"]
+    noise_path_selector_dict:
+      demand: ["scratch/dataset/processed/demand/path/train.json"]
+      qut: ["scratch/dataset/processed/qut_noise/path/train.json"]
+      wham: ["scratch/dataset/processed/wham/path/train.json"]
+    sec_s: 10.0
+    num_noises: 4
+    validator_cfg:
+      _target_: nassl.dataset.validator.NoisePowerValidator
+    sample_rate: ${datamodule.sample_rate}
+    shuffle: true
+    local_cache_root: ${datamodule.local_cache_root}
+  batch_sampler: null
+  collator:
+    _target_: nassl.dataset.collator.PairGeneratorCollator
+    pair_generator_cfg:
+      _target_: nassl.dataset.pair_generator.MultiNoiseTwoChannelPairGenerator
+      snr_range:
+        - ${datamodule.min_snr}
+        - ${datamodule.max_snr}
+      rir_dir: "scratch/dcase2026/irs/${datamodule.rir_dir_version}/train"
+      snr_beta_alpha: 1.0
+      snr_beta_beta: 1.0
+      fs: ${datamodule.sample_rate}
+      conv_method: "fft"
+      local_cache_root: ${datamodule.local_cache_root}
+      replace_zero_target: true
+      use_early_reflection_target: true
+      early_reflection_duration_sec: 0.05
+      num_src: 4
+    shuffle: true
+valid:
+  dataloader:
+    batch_size: ${datamodule.batch_size}
+    num_workers: ${datamodule.num_workers}
+    pin_memory: true
+    shuffle: false
+    set_num_threads_to_one: true
+  dataset:
+    _target_: nassl.dataset.TestDataset
+    manifest_json_path: "scratch/dcase2026/noisy/${datamodule.valid_set_name}/valid/manifest_test.json"
+    sample_rate: ${datamodule.sample_rate}
+    return_wave_s: false
+    return_rep_s: true
+    feature_dir: "scratch/dcase2026/feature/${datamodule.valid_set_name}/valid/${datamodule.feature_name}/data"
+    local_cache_root: ${datamodule.local_cache_root}
+  batch_sampler: null
+  collator:
+    _target_: nassl.dataset.TensorCollator
+    shuffle: false

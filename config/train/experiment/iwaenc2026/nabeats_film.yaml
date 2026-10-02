@@ -1,0 +1,22 @@
+# @package _global_
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - override /callback: ema
+  - override /datamodule: iwaenc2026/fsd50k_three_snr_-5_10_same
+  - override /plmodel: iwaenc2026/nabeats_film
+  - override /trainer: ddp
+
+datamodule:
+  manifest_name: "manifest_test_shift_left_slen"
+  train:
+    dataset:
+      _target_: nassl.dataset.NoisePairShiftLeftFromStartDataset
+      sec_n_ref_shift: 0
+      # NoisePairShiftLeftFromStartDataset with  sec_n_ref_shift of 0 obtains the reference noise segment from the immediately preceding segment of the noisy segment
+
+
+trainer:
+  devices: 2

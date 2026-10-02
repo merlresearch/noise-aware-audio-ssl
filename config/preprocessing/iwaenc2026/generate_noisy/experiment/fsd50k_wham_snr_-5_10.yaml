@@ -1,0 +1,22 @@
+# @package _global_
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+target_name: fsd50k
+noise_name: wham
+
+target:
+  path_selector_list:
+    - "scratch/dataset/processed/${target_name}/path/${split}.json"
+  original_parent_dir: "scratch/dataset/processed/${target_name}/audio"
+
+noise:
+  path_selector_list:
+    - "scratch/dataset/processed/${noise_name}/path/${split}.json"
+
+
+min_snr: -5
+max_snr: 10
+output_dir: "scratch/iwaenc2026/noisy/${target_name}/${noise_name}_snr_${min_snr}_${max_snr}/${split}_noise"
+sec_s: 7.6358

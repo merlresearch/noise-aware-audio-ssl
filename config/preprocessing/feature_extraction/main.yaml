@@ -1,0 +1,25 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - _self_
+  - model: null
+
+seed: 0
+output_dir: null
+save_dir: "${output_dir}/data"
+feature_ext: ".pt"
+sample_rate: 16000
+batch_size: 128
+device: "cuda:0"
+feature_extractor_cfg: {}
+manifest_test_path: null
+wave_key: null
+
+hydra:
+  run:
+    dir: "${output_dir}/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}"
+  output_subdir: feature_extraction
+  job:
+    chdir: false

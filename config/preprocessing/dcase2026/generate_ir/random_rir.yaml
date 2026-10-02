@@ -1,0 +1,41 @@
+# Copyright (C) 2026 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+defaults:
+  - _self_
+
+n_ir: null
+name: null
+output_dir: scratch/dcase2026/irs
+fs: 16000
+seed: null
+
+room_x: [3.0, 8.0]
+room_y: [3.0, 8.0]
+room_z: [1.5, 3.0]
+rt60: [0.1, 0.4]
+rt60_beta_alpha: 1.0
+rt60_beta_beta: 1.0
+z_value: 1.0
+
+mic0_dist: [0.05, 0.05]
+mic1_dist: [0.1, 1.0]
+mic1_dist_beta_alpha: 1.0
+mic1_dist_beta_beta: 1.0
+
+mic_margin: 0.0
+noise_margin: 0.2
+src_margin: 0.5
+src_location_type: random
+
+max_mic_direction_trials: 100
+max_rt60_trials: 100
+max_generation_trials: 20
+
+
+hydra:
+  run:
+    dir: "${output_dir}/${name}/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}"
+  job:
+    chdir: false
