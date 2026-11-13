@@ -12,6 +12,7 @@ import lightning.pytorch as pl
 import torch
 from omegaconf import DictConfig
 
+from nassl.utils.checkpoint import to_checkpoint_config
 from nassl.utils.hydra import instantiate
 
 logger = logging.getLogger(__name__)
@@ -145,6 +146,8 @@ class BasePLModel(pl.LightningModule):
         return trainable_keys
 
     def on_save_checkpoint(self, checkpoint: dict[str, Any]) -> None:
+        if "hyper_parameters" in checkpoint:
+            checkpoint["hyper_parameters"] = to_checkpoint_config(checkpoint["hyper_parameters"])
         if self.save_only_trainable:
             if self.trainable_keys is None:
                 self.trainable_keys = self._get_trainable_state_dict_keys()

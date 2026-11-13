@@ -62,7 +62,7 @@ class NADasheng(NoiseAwareModel):
     def preprocess(self, x: torch.Tensor) -> tuple[torch.Tensor, int, int]:
         """
         Args:
-            x: mel spectrogram [B, 1, T, F]
+            x: mel spectrogram [B, 1, F, T]
         Returns:
             x: patch embeddings
         """
@@ -71,19 +71,18 @@ class NADasheng(NoiseAwareModel):
         x = self.org_model.init_bn(x) if self.org_model.init_bn is not None else x
         # Remember starting position if we pad
         padding_start = 0
-        if x.shape[-1] > self.org_model.target_length:
-            splits = x.split(self.org_model.target_length, -1)
-
-            if splits[-1].shape[-1] < self.org_model.target_length:
-                if self.org_model.pad_last:
-                    pad = torch.zeros(*x.shape[:-1], self.org_model.target_length, device=x.device)
-                    pad[..., : splits[-1].shape[-1]] = splits[-1]
-                    padding_start = x.shape[-1] // self.org_model.patch_stride[-1]
-                    splits = torch.stack((*splits[:-1], pad), dim=0)
-                else:
-                    splits = torch.stack(splits[:-1], dim=0)
-            else:
-                splits = torch.stack(splits[:-1], dim=0)
+        target = self.org_model.target_length
+        stride = self.org_model.patch_stride[-1]
+        if target % stride:
+            raise ValueError("Dasheng target_length must be divisible by its time patch stride")
+        if x.shape[-1] > target:
+            if self.org_model.pooling == "token":
+                raise ValueError("Chunked Dasheng features require sequence pooling")
+            padding_start = x.shape[-1] // stride
+            splits = torch.stack(
+                [torch.nn.functional.pad(chunk, (0, target - chunk.shape[-1])) for chunk in x.split(target, dim=-1)],
+                dim=0,
+            )
             n_splits = len(splits)
             x = torch.flatten(splits, 0, 1)  # spl b c f t-> (spl b) c f t
         else:
@@ -105,7 +104,8 @@ class NADasheng(NoiseAwareModel):
 
     def postprocess(self, x: torch.Tensor, n_splits: int, padding_start: int) -> torch.Tensor:
         x = self.org_model.norm(x)
-        x = torch.reshape(x, (x.shape[0] // n_splits, -1, x.shape[-1]))
+        # (spl b) t c -> b (spl t) c: preserve each clip's chunk order
+        x = x.reshape(n_splits, -1, *x.shape[1:]).transpose(0, 1).flatten(1, 2)
         if padding_start:
             x = x[:, :padding_start, :]
         return x

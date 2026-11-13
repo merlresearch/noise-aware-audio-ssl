@@ -17,7 +17,7 @@ GITHUB_RELEASE_URL = "https://github.com/merlresearch/noise-aware-audio-ssl/rele
 
 BASE_MODEL_DICT: dict[str, list[str]] = {"v1.0.0": ["BEATs_iter3"]}
 NA_MODEL_DICT: dict[str, list[str]] = {
-    "v1.0.0": [
+    "v1.0.1": [
         "iwaenc2026_dbeats_seed0",
         "iwaenc2026_nabeats_ca_seed0",
         "iwaenc2026_nabeats_film_seed0",
@@ -57,7 +57,9 @@ def get_cached_model_path(model_id: str) -> Path:
     if model_id not in URL_DICT:
         raise ValueError(f"Unknown model_id: '{model_id}'")
 
-    model_path = get_cache_dir() / Path(URL_DICT[model_id]).name
+    release_path = Path(URL_DICT[model_id])
+    model_path = get_cache_dir() / release_path.parent.name / release_path.name
+    model_path.parent.mkdir(parents=True, exist_ok=True)
     if model_path.exists():
         return model_path
     lock_path = Path(f"{model_path}.lock")

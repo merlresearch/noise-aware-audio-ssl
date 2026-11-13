@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from pathlib import Path
 from typing import List
 
 import pytest
 import torch
 
 from nassl.model.noiseaware import NoiseAwareModel
-from nassl.utils.download import get_cache_dir
+from nassl.utils.download import URL_DICT, get_cache_dir
 from nassl.utils.restore import restore_model
 
 CHECKPOINT_CASES: List[str] = [
@@ -30,7 +31,8 @@ def test_restore_model_requires_exactly_one_source() -> None:
 
 
 def _require_checkpoint(model_id: str) -> None:
-    ckpt_path = get_cache_dir() / f"{model_id}.ckpt"
+    release_path = Path(URL_DICT[model_id])
+    ckpt_path = get_cache_dir() / release_path.parent.name / release_path.name
     if not ckpt_path.is_file() or ckpt_path.stat().st_size < 1024:
         pytest.skip(f"Checkpoint is unavailable: {ckpt_path}")
 

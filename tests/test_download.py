@@ -40,10 +40,36 @@ def test_get_cached_model_path_downloads_once(
     first_path = download.get_cached_model_path(model_id="BEATs_iter3")
     second_path = download.get_cached_model_path(model_id="BEATs_iter3")
 
-    assert first_path == tmp_path / "BEATs_iter3.pt"
+    assert first_path == tmp_path / "v1.0.0" / "BEATs_iter3.pt"
     assert second_path == first_path
     assert first_path.read_bytes() == b"checkpoint"
     assert call_count["value"] == 1
+
+
+def test_get_cached_model_path_ignores_old_checkpoint(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model_id = "dcase2026_nabeats_seed0"
+    legacy_path = tmp_path / f"{model_id}.ckpt"
+    legacy_path.write_bytes(b"old checkpoint")
+    previous_path = tmp_path / "v1.0.0" / legacy_path.name
+    previous_path.parent.mkdir()
+    previous_path.write_bytes(b"old checkpoint")
+
+    def fake_download_url_to_file(url: str, dst: str, progress: bool) -> None:
+        assert url == URL_DICT[model_id]
+        Path(dst).write_bytes(b"new checkpoint")
+
+    monkeypatch.setenv("NASSL_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(download, "download_url_to_file", fake_download_url_to_file)
+
+    model_path = download.get_cached_model_path(model_id=model_id)
+
+    assert model_path == tmp_path / "v1.0.1" / legacy_path.name
+    assert model_path.read_bytes() == b"new checkpoint"
+    assert legacy_path.read_bytes() == b"old checkpoint"
+    assert previous_path.read_bytes() == b"old checkpoint"
 
 
 def test_get_cached_model_path_removes_partial_download(
@@ -61,8 +87,8 @@ def test_get_cached_model_path_removes_partial_download(
     with pytest.raises(RuntimeError, match="download failed"):
         download.get_cached_model_path(model_id="BEATs_iter3")
 
-    assert not (tmp_path / "BEATs_iter3.pt").exists()
-    assert not (tmp_path / "BEATs_iter3.pt.tmp").exists()
+    assert not (tmp_path / "v1.0.0" / "BEATs_iter3.pt").exists()
+    assert not (tmp_path / "v1.0.0" / "BEATs_iter3.pt.tmp").exists()
 
 
 def test_get_cached_model_path_uses_file_lock(
@@ -91,8 +117,8 @@ def test_get_cached_model_path_uses_file_lock(
         model_paths = [future.result() for future in futures]
 
     assert model_paths == [
-        tmp_path / "dcase2026_nabeats_seed0.ckpt",
-        tmp_path / "dcase2026_nabeats_seed0.ckpt",
+        tmp_path / "v1.0.1" / "dcase2026_nabeats_seed0.ckpt",
+        tmp_path / "v1.0.1" / "dcase2026_nabeats_seed0.ckpt",
     ]
     assert call_count["value"] == 1
 

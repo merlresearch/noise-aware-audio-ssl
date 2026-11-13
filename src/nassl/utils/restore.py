@@ -86,7 +86,7 @@ def restore_model(
             raise ValueError(f"Model '{model_id}' is a base SSL model and cannot be restored with this function")
         ckpt_path = get_cached_model_path(model_id=model_id)
     assert ckpt_path is not None
-    ckpt = torch.load(ckpt_path, weights_only=False, map_location=device)
+    ckpt = torch.load(ckpt_path, weights_only=True, map_location=device)
     model = instantiate(cfg=ckpt["hyper_parameters"]["model_cfg"])
     model_state_dict = _get_model_state_dict(state_dict=ckpt["state_dict"])
     incompat = model.load_state_dict(model_state_dict, strict=False)
